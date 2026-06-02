@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+gemini_usage.txt
+signals.db
+*.db
+.DS_Store
