@@ -4,68 +4,62 @@ from src.news.stock_mapper import discover_stocks
 from src.market.market_context import get_quote
 from src.ai.fusion_engine import run_fusion
 from src.alerts.router import route_alert
+from src.collectors.politician_scraper import get_politician_trades
+from src.config_politicians import HIGH_IMPACT_POLITICIANS
+from src.db.trade_db import init_db
 
 def run_scan():
 
-    print(
-        "\nCollecting news..."
-    )
+    init_db()
+
+    print("\nCollecting news...")
 
     news = get_news()
 
-    policy_news = filter_policy_news(
-        news
-    )
+    policy_news = filter_policy_news(news)
 
-    print(
-        "Policy news:",
-        len(policy_news)
-    )
+    print("Policy news:", len(policy_news))
 
-    stocks = discover_stocks(
-        policy_news
-    )
+    stocks = discover_stocks(policy_news)
 
     validated = []
 
     for s in stocks:
-
-        quote = get_quote(
-            s["ticker"]
-        )
-
+        quote = get_quote(s["ticker"])
         if quote:
-
             validated.append({
                 "ticker": s["ticker"],
                 "why": s["why"],
                 "change_pct": quote["change_pct"]
             })
 
-    headlines = [
-        n["title"]
-        for n in policy_news
-    ]
+    headlines = [n["title"] for n in policy_news]
 
-    politician_summary = """
-Congress trades monitored.
-Political relevance prioritized.
-"""
+    print("\nFetching politician trades...")
+    pol_lines = []
+    for name, slug in HIGH_IMPACT_POLITICIANS.items():
+        try:
+            trades = get_politician_trades(slug)
+            for t in trades[:2]:
+                pol_lines.append(
+                    f"{t['politician']} {t['transaction_type']} {t['ticker']}"
+                )
+        except Exception as e:
+            print(f"Skipping {name}:", e)
 
-    result = run_fusion(
-        headlines,
-        politician_summary,
-        validated
+    politician_summary = (
+        "\n".join(pol_lines)
+        if pol_lines
+        else "No recent politician trades found."
     )
 
-    print(
-        "\nFINAL INTELLIGENCE\n"
-    )
+    print("Politician signals:", len(pol_lines))
 
+    result = run_fusion(headlines, politician_summary, validated)
+
+    print("\nFINAL INTELLIGENCE\n")
     print(result)
 
-    route_alert(
-        result
-    )
+    route_alert(result)
 
     return result
