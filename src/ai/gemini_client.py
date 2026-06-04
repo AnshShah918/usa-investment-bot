@@ -11,7 +11,7 @@ client = genai.Client(
     api_key=GEMINI_API_KEY
 )
 
-PRIMARY_MODEL = "gemini-2.0-flash-lite"
+PRIMARY_MODEL = "gemini-2.5-flash"
 
 USAGE_DATE_FILE = "gemini_usage_date.txt"
 
