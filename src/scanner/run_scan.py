@@ -25,18 +25,17 @@ def run_scan():
 
     validated = []
 
-    for ticker, score in stock_candidates:
+for stock in stock_candidates:
 
-        quote = get_quote(ticker)
+        quote = get_quote(stock["ticker"])
 
         if quote:
 
             validated.append({
-                "ticker": ticker,
-                "theme_score": score,
+                "ticker": stock["ticker"],
+                "why": stock["why"],
                 "change_pct": quote["change_pct"]
             })
-
     headlines = [n["title"] for n in policy_news]
 
     print("\nFetching politician trades...")
